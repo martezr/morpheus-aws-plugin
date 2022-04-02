@@ -1,0 +1,352 @@
+<ul class="view-type nav nav-pills nav-justified" >
+   <li role="presentation" class="active"><a href="#overview-tab" data-toggle="pill" role="tab">Overview</a></li>
+   <li role="presentation"><a href="#backup-jobs-tab" data-toggle="pill" role="tab">Backup Jobs</a></li>
+   <li role="presentation"><a href="#restore-jobs-tab" data-toggle="pill" role="tab">Restore Jobs</a></li>
+</ul>
+<div class="tab-content">
+   <div id="overview-tab" role="tabpanel" class="tab-pane active">
+      <div class="row">
+         <div class="col-sm-6">
+            <h2>Overview</h2>
+         </div>
+         <div class="col-sm-6 text-right">
+            <div id="instance-actions" class="btn-group" style="margin-top: 15px;">
+               <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               Actions <span class="caret"></span>
+               </button>
+               <ul class="dropdown-menu">
+                  <li>
+                     <a id="createBackup">Trigger Backup</a>
+                  </li>
+                  <li>
+                     <a id="createBackupModal" class="resource-info-modal-link" data-target="#resource-info-modal" data-toggle="modal" data-key="CloudTrail">Create On-Demand Backup</a>
+                  </li>
+                  <li>
+                     <a href="/instances/workflowPrompt/{{id}}" data-remote="true" data-method="PUT" data-target="#workflow-instance-modal" class="instance-workflow-button" data-toggle="modal">Run Workflow</a>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <hr>
+      <div class="incident-stats">
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{totalJobs}}</span>
+            <span class="stat-label">Total</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{successfulJobs}}</span>
+            <span class="stat-label">Successful</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{runningJobs}}</span>
+            <span class="stat-label">In Progress</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{failedJobs}}</span>
+            <span class="stat-label">Failed</span>
+         </div>
+      </div>
+      <div class="header-meta-info">
+         <p>Jobs</p>
+      <table>
+         <thead>
+            <th>Status</th>
+            <th>ID</th>
+            <th>Creation Date</th>
+            <th>Completion Date</th>
+            <th>Percentage</th>
+            <th>Vault Name</th>
+            <th>Size</th>
+         </thead>
+         <tbody>
+            {{#each jobs}}
+            <tr>
+               <td>{{this.state}}</td>
+               <td>{{this.id}}</td>
+               <td>{{this.start}}</td>
+               <td>{{this.end}}</td>
+               <td>{{this.percentage}}</td>
+               <td>{{this.vaultName}}</td>
+               <td>{{this.size}}</td>
+            </tr>
+            {{/each}}
+         </tbody>
+      </table>
+      </div>
+   </div>
+   <div id="backup-jobs-tab" role="tabpanel" class="tab-pane">
+      <div class="row">
+         <div class="col-sm-6">
+            <h2>Backup Jobs</h2>
+         </div>
+         <div class="col-sm-6 text-right">
+            <div id="instance-actions" class="btn-group" style="margin-top: 15px;">
+               <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               Actions <span class="caret"></span>
+               </button>
+               <ul class="dropdown-menu">
+                  <li>
+                     <a id="createBackup">Trigger Backup</a>
+                  </li>
+                  <li>
+                     <a id="createBackupModal" class="resource-info-modal-link" data-target="#resource-info-modal" data-toggle="modal" data-key="CloudTrail">Create On-Demand Backup</a>
+                  </li>
+                  <li>
+                     <a href="/instances/workflowPrompt/{{id}}" data-remote="true" data-method="PUT" data-target="#workflow-instance-modal" class="instance-workflow-button" data-toggle="modal">Run Workflow</a>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <hr>
+      <div class="incident-stats">
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{totalJobs}}</span>
+            <span class="stat-label">Total</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{successfulJobs}}</span>
+            <span class="stat-label">Successful</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{runningJobs}}</span>
+            <span class="stat-label">In Progress</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{failedJobs}}</span>
+            <span class="stat-label">Failed</span>
+         </div>
+      </div>
+      <div class="header-meta-info">
+         <p>Jobs</p>
+      <table>
+         <thead>
+            <th>Status</th>
+            <th>ID</th>
+            <th>Creation Date</th>
+            <th>Completion Date</th>
+            <th>Percentage</th>
+            <th>Vault Name</th>
+            <th>Size</th>
+         </thead>
+         <tbody>
+            {{#each jobs}}
+            <tr>
+               <td>{{this.state}}</td>
+               <td>{{this.id}}</td>
+               <td>{{this.start}}</td>
+               <td>{{this.end}}</td>
+               <td>{{this.percentage}}</td>
+               <td>{{this.vaultName}}</td>
+               <td>{{this.size}}</td>
+            </tr>
+            {{/each}}
+         </tbody>
+      </table>
+      </div>
+   </div>
+   <div id="restore-jobs-tab" role="tabpanel" class="tab-pane">
+      <div class="row">
+         <div class="col-sm-6">
+            <h2>Restore Jobs</h2>
+         </div>
+         <div class="col-sm-6 text-right">
+            <div id="instance-actions" class="btn-group" style="margin-top: 15px;">
+               <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               Actions <span class="caret"></span>
+               </button>
+               <ul class="dropdown-menu">
+                  <li>
+                     <a class="resource-info-modal-link" data-target="#resource-info-modal" data-toggle="modal" data-key="CloudTrail">Restore Backup</a>
+                  </li>
+                  <li>
+                     <a href="/instances/workflowPrompt/{{id}}" data-remote="true" data-method="PUT" data-target="#workflow-instance-modal" class="instance-workflow-button" data-toggle="modal">Run Workflow</a>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <hr>
+      <div class="incident-stats">
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{osfacts.name}}</span>
+            <span class="stat-label">Operating System</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{cpufacts.cores}}</span>
+            <span class="stat-label">CPU Cores</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{cpufacts.physicalcount}}</span>
+            <span class="stat-label">Logical Processors</span>
+         </div>
+         <div class="stats-container big-stat-block">
+            <span class="stat-content">{{memoryfacts.system.total}}</span>
+            <span class="stat-label">Memory</span>
+         </div>
+      </div>
+   </div>
+</div>
+
+	<div class="modal fade" tabindex="-1" role="dialog" id="resource-info-modal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true"><svg class="close-icon"><use xlink:href="/assets/icons.svg#close-window"></use></svg></span>
+					</button>
+					<h4 class="modal-title">Create On-Demand Backup</h4>
+				</div>
+				<div class="modal-body">
+
+		<form id="createBackupForm" action="/plugin/awsBackup/createBackup" method="post" role="form" class="form-horizontal" data-remote="true">
+		<input id="createBackupCSRF" type="hidden" name="_csrf">
+      <input type="hidden" name="_method" value="PUT" id="_method">
+			<p>Create an on-demand backup for this instance.</p>
+			<div class="workflow"><div class="workflow-form-options" data-id="9">	
+					<div class="form-group">
+					<label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Retention Period</label>
+				   <div class="col-sm-12">
+					<select id="retentionPeriod" name="retentionPeriod" class="form-control input-sm">
+                  <option value="always">Always</option>
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                  <option value="months">Months</option>
+                  <option value="years">Years</option>
+               </select>
+<div class="service-plan-details">
+			<span class="plan-price">Specify the duration of time to store the backup <span class="btn-icon btn-icon-info"></span></span>
+		</div>
+				</div>
+					</div>
+               <div id="retentionDuration" name="retentionDuration" class="form-group" hidden>
+					<label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Retention Duration</label>
+               <div class="col-sm-12">
+						<input type="text" class="form-control input-sm" name="retentionDurationValue" value="" id="retentionDurationValue">
+					</div>
+               </div>
+					<div class="form-group">
+						<label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Backup Vault</label>
+						<div class="col-sm-12">
+                     <select id="backupVault" name="backupVault" class="form-control input-sm">
+                     </select>
+<div class="service-plan-details">
+			<span class="plan-price">Specify the Backup vault this backup is organized in <span class="btn-icon btn-icon-info"></span></span>
+		</div>
+						</div>
+					</div>
+</div>
+</div>
+</form>
+	
+</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+               <button id="createBackupSubmit" type="submit" class="btn btn-primary" data-loading-text="Applying..." data-submit="true" data-auto-reset="false">Create Backup</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script nonce="{{webnonce}}">
+   document.getElementById("createBackupModal").addEventListener("click", loadImage);
+   document.getElementById("retentionPeriod").addEventListener("change", toggleRetentionDuration);
+   document.getElementById("createBackup").addEventListener("click", listRecoveryPoints);
+   var csrfValue = document.querySelector("meta[name='_csrf']").attributes['content'].value;
+   console.log(csrfValue)
+   document.getElementById("createBackupSubmit").addEventListener("click", function(e){
+      console.log("Did it fire?")
+      console.log(csrfValue)
+      var csrfEl = document.getElementById("createBackupSubmit");
+      csrfEl.value = csrfValue;
+      $('#resource-info-modal').modal( 'hide' )
+   });
+
+   function listRecoveryPoints() {
+   console.log("list recovery points")
+   fetch('/plugin/awsBackup/listRecoveryPoints')
+     .then(response => {
+        return response.json()
+     })
+     .then(users =>{
+        console.log(users);
+     });
+   }
+
+   function triggerBackup() {
+   console.log("triggered backup")
+   fetch('/plugin/awsBackup/createBackup')
+     .then(response => {
+        return response.json()
+     })
+     .then(users =>{
+        console.log(users);
+     });
+   }
+
+   function loadImage() {
+   fetch('/plugin/awsBackup/backupVaults')
+     .then(response => {
+        return response.json()
+     })
+     .then(users =>{
+        console.log(users.vaults);
+        var vaults = users.vaults
+        var dynamicSelect = document.getElementById("backupVault");
+        removeOptions(dynamicSelect);
+        var arrayLength = vaults.length;
+        for (var i = 0; i < arrayLength; i++) {
+            console.log(vaults[i]);
+            var newOption = document.createElement("option");
+            newOption.text = vaults[i];
+            dynamicSelect.add(newOption);
+         }
+     });
+   }
+
+   function removeOptions(selectElement) {
+      var i, L = selectElement.options.length - 1;
+      for(i = L; i >= 0; i--) {
+         selectElement.remove(i);
+      }
+   }
+
+function toggleRetentionDuration() {
+  var x = document.getElementById("retentionDuration");
+  var period = document.getElementById("retentionPeriod")
+  console.log(period.value)
+  if (period.value !== "always") {
+    x.hidden = false;
+  } else {
+    x.hidden = true;   
+  }
+}
+
+</script>
+
+<style>
+
+.backup-info-btn{
+   font-size: 10px;
+}
+.badge {
+	background-color: #632CA6;
+}
+.big-stat-block {
+  margin-top: 15px;
+  margin-bottom: 40px;
+}
+
+.resource-detail .type-logo .logo {
+	margin-top: 0px;
+}
+.instance .incident-stats .status-icon {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.instance .incident-stats {
+  margin-bottom: 22px;
+}
+</style>
