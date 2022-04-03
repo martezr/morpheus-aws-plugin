@@ -16,13 +16,10 @@
                </button>
                <ul class="dropdown-menu">
                   <li>
-                     <a id="createBackup">Trigger Backup</a>
-                  </li>
-                  <li>
                      <a id="createBackupModal" class="resource-info-modal-link" data-target="#resource-info-modal" data-toggle="modal" data-key="CloudTrail">Create On-Demand Backup</a>
                   </li>
                   <li>
-                     <a href="/instances/workflowPrompt/{{id}}" data-remote="true" data-method="PUT" data-target="#workflow-instance-modal" class="instance-workflow-button" data-toggle="modal">Run Workflow</a>
+                     <a id="restoreBackupModal" class="resource-info-modal-link" data-target="#restore-backup-modal" data-toggle="modal" data-key="CloudTrail">Restore From Backup</a>
                   </li>
                </ul>
             </div>
@@ -48,7 +45,7 @@
          </div>
       </div>
       <div class="header-meta-info">
-         <p>Jobs</p>
+         <p>Recovery Points</p>
       <table>
          <thead>
             <th>Status</th>
@@ -168,99 +165,127 @@
          </div>
       </div>
       <hr>
-      <div class="incident-stats">
-         <div class="stats-container big-stat-block">
-            <span class="stat-content">{{osfacts.name}}</span>
-            <span class="stat-label">Operating System</span>
+   </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="resource-info-modal">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true"><svg class="close-icon"><use xlink:href="/assets/icons.svg#close-window"></use></svg></span>
+            </button>
+            <h4 class="modal-title">Create On-Demand Backup</h4>
          </div>
-         <div class="stats-container big-stat-block">
-            <span class="stat-content">{{cpufacts.cores}}</span>
-            <span class="stat-label">CPU Cores</span>
+         <div class="modal-body">
+
+   <form id="createBackupForm" action="/plugin/awsBackup/createBackup" method="post" role="form" class="form-horizontal" data-remote="true">
+   <input id="createBackupCSRF" type="hidden" name="_csrf">
+   <input type="hidden" name="_method" value="PUT" id="_method">
+      <p>Create an on-demand backup for this instance.</p>
+      <div class="workflow"><div class="workflow-form-options" data-id="9">	
+            <div class="form-group">
+            <label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Retention Period</label>
+            <div class="col-sm-12">
+            <select id="retentionPeriod" name="retentionPeriod" class="form-control input-sm">
+               <option value="always">Always</option>
+               <option value="days">Days</option>
+               <option value="weeks">Weeks</option>
+               <option value="months">Months</option>
+               <option value="years">Years</option>
+            </select>
+<div class="service-plan-details">
+      <span class="plan-price">Specify the duration of time to store the backup <span class="btn-icon btn-icon-info"></span></span>
+   </div>
          </div>
-         <div class="stats-container big-stat-block">
-            <span class="stat-content">{{cpufacts.physicalcount}}</span>
-            <span class="stat-label">Logical Processors</span>
-         </div>
-         <div class="stats-container big-stat-block">
-            <span class="stat-content">{{memoryfacts.system.total}}</span>
-            <span class="stat-label">Memory</span>
+            </div>
+            <div id="retentionDuration" name="retentionDuration" class="form-group" hidden>
+            <label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Retention Duration</label>
+            <div class="col-sm-12">
+               <input type="text" class="form-control input-sm" name="retentionDurationValue" value="" id="retentionDurationValue">
+            </div>
+            </div>
+            <div class="form-group">
+               <label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Backup Vault</label>
+               <div class="col-sm-12">
+                  <select id="backupVault" name="backupVault" class="form-control input-sm">
+                  </select>
+<div class="service-plan-details">
+      <span class="plan-price">Specify the Backup vault this backup is organized in <span class="btn-icon btn-icon-info"></span></span>
+   </div>
+               </div>
+            </div>
+</div>
+</div>
+</form>
+
+</div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+            <button id="createBackupSubmit" type="submit" class="btn btn-primary" data-loading-text="Applying..." data-submit="true" data-auto-reset="false">Create Backup</button>
          </div>
       </div>
    </div>
 </div>
 
-	<div class="modal fade" tabindex="-1" role="dialog" id="resource-info-modal">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true"><svg class="close-icon"><use xlink:href="/assets/icons.svg#close-window"></use></svg></span>
-					</button>
-					<h4 class="modal-title">Create On-Demand Backup</h4>
-				</div>
-				<div class="modal-body">
+<div class="modal fade" tabindex="-1" role="dialog" id="restore-backup-modal">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true"><svg class="close-icon"><use xlink:href="/assets/icons.svg#close-window"></use></svg></span>
+            </button>
+            <h4 class="modal-title">Restore Backup</h4>
+         </div>
+         <div class="modal-body">
 
-		<form id="createBackupForm" action="/plugin/awsBackup/createBackup" method="post" role="form" class="form-horizontal" data-remote="true">
-		<input id="createBackupCSRF" type="hidden" name="_csrf">
-      <input type="hidden" name="_method" value="PUT" id="_method">
-			<p>Create an on-demand backup for this instance.</p>
-			<div class="workflow"><div class="workflow-form-options" data-id="9">	
-					<div class="form-group">
-					<label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Retention Period</label>
-				   <div class="col-sm-12">
-					<select id="retentionPeriod" name="retentionPeriod" class="form-control input-sm">
-                  <option value="always">Always</option>
-                  <option value="days">Days</option>
-                  <option value="weeks">Weeks</option>
-                  <option value="months">Months</option>
-                  <option value="years">Years</option>
-               </select>
-<div class="service-plan-details">
-			<span class="plan-price">Specify the duration of time to store the backup <span class="btn-icon btn-icon-info"></span></span>
-		</div>
-				</div>
-					</div>
-               <div id="retentionDuration" name="retentionDuration" class="form-group" hidden>
-					<label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Retention Duration</label>
+   <form id="restoreBackupForm" action="/plugin/awsBackup/restoreBackup" method="post" role="form" class="form-horizontal" data-remote="true">
+   <input id="restoreBackupCSRF" type="hidden" name="_csrf">
+   <input type="hidden" name="_method" value="PUT" id="_method">
+      <p>Restore the instance from a backup.</p>
+      <div class="workflow"><div class="workflow-form-options" data-id="9">	
+            <div class="form-group">
+               <label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Recovery Point ARN</label>
                <div class="col-sm-12">
-						<input type="text" class="form-control input-sm" name="retentionDurationValue" value="" id="retentionDurationValue">
-					</div>
-               </div>
-					<div class="form-group">
-						<label class="control-label" style="padding-left: 5px;padding-bottom: 5px;">Backup Vault</label>
-						<div class="col-sm-12">
-                     <select id="backupVault" name="backupVault" class="form-control input-sm">
-                     </select>
+                  <select id="recoveryPoint" name="recoveryPoint" class="form-control input-sm">
+                  </select>
 <div class="service-plan-details">
-			<span class="plan-price">Specify the Backup vault this backup is organized in <span class="btn-icon btn-icon-info"></span></span>
-		</div>
-						</div>
-					</div>
+      <span class="plan-price">Specify the recovery point to restore the instance to <span class="btn-icon btn-icon-info"></span></span>
+   </div>
+               </div>
+            </div>
 </div>
 </div>
 </form>
-	
+
 </div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-               <button id="createBackupSubmit" type="submit" class="btn btn-primary" data-loading-text="Applying..." data-submit="true" data-auto-reset="false">Create Backup</button>
-				</div>
-			</div>
-		</div>
-	</div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+            <button id="restoreBackupSubmit" type="submit" class="btn btn-primary" data-loading-text="Applying..." data-submit="true" data-auto-reset="false">Restore Backup</button>
+         </div>
+      </div>
+   </div>
+</div>
 
 <script nonce="{{webnonce}}">
-   document.getElementById("createBackupModal").addEventListener("click", loadImage);
+   document.getElementById("createBackupModal").addEventListener("click", listBackupVaults);
+   document.getElementById("restoreBackupModal").addEventListener("click", listRecoveryPoints);
    document.getElementById("retentionPeriod").addEventListener("change", toggleRetentionDuration);
    document.getElementById("createBackup").addEventListener("click", listRecoveryPoints);
    var csrfValue = document.querySelector("meta[name='_csrf']").attributes['content'].value;
    console.log(csrfValue)
    document.getElementById("createBackupSubmit").addEventListener("click", function(e){
-      console.log("Did it fire?")
       console.log(csrfValue)
       var csrfEl = document.getElementById("createBackupSubmit");
       csrfEl.value = csrfValue;
       $('#resource-info-modal').modal( 'hide' )
+   });
+
+   document.getElementById("restoreBackupSubmit").addEventListener("click", function(e){
+      console.log(csrfValue)
+      var csrfEl = document.getElementById("restoreBackupSubmit");
+      csrfEl.value = csrfValue;
+      $('#restore-backup-modal').modal( 'hide' )
    });
 
    function listRecoveryPoints() {
@@ -271,6 +296,16 @@
      })
      .then(users =>{
         console.log(users);
+        var recoveryPoints = users.recoveryPoints
+        var dynamicSelect = document.getElementById("recoveryPoint");
+        removeOptions(dynamicSelect);
+        var arrayLength = recoveryPoints.length;
+        for (var i = 0; i < arrayLength; i++) {
+            console.log(recoveryPoints[i]);
+            var newOption = document.createElement("option");
+            newOption.text = recoveryPoints[i];
+            dynamicSelect.add(newOption);
+         }
      });
    }
 
@@ -285,7 +320,7 @@
      });
    }
 
-   function loadImage() {
+   function listBackupVaults() {
    fetch('/plugin/awsBackup/backupVaults')
      .then(response => {
         return response.json()

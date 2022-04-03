@@ -48,89 +48,100 @@ class AWSBackupTabProvider extends AbstractInstanceTabProvider {
         // https://developer.morpheusdata.com/api/com/morpheusdata/model/TaskConfig.InstanceConfig.html
 		TaskConfig instanceDetails = morpheus.buildInstanceConfig(instance, [:], null, [], [:]).blockingGet()
 		println "External ID: ${instanceDetails.instance.containers[0].server.externalId}"
+		println "AWS Region: ${instance.site}"
+		def instanceRegion = instance.resourcePool.cloud.regionCode
+		def awsRegion = instanceRegion.split("\\.")[1]
+
 		// Define an object for storing the data retrieved
 		// from the DataDog REST API
 		def HashMap<String, String> awsBackupPayload = new HashMap<String, String>();
 
-        // Retrieve plugin settings
-		def settings = morpheus.getSettings(plugin)
-		def settingsOutput = ""
-		settings.subscribe(
-			{ outData -> 
-                 settingsOutput = outData
-        	},
-        	{ error ->
-                 println error.printStackTrace()
-        	}
-		)
+		try {
+			// Retrieve plugin settings
+			def settings = morpheus.getSettings(plugin)
+			def settingsOutput = ""
+			settings.subscribe(
+				{ outData -> 
+					settingsOutput = outData
+				},
+				{ error ->
+					println error.printStackTrace()
+				}
+			)
 
-		// Parse the plugin settings payload. The settings will be available as
-		// settingsJson.$optionTypeFieldName i.e. - settingsJson.ddApiKey to retrieve the DataDog API key setting
-		JsonSlurper slurper = new JsonSlurper()
-		def settingsJson = slurper.parseText(settingsOutput)
+			// Parse the plugin settings payload. The settings will be available as
+			// settingsJson.$optionTypeFieldName i.e. - settingsJson.ddApiKey to retrieve the DataDog API key setting
+			JsonSlurper slurper = new JsonSlurper()
+			def settingsJson = slurper.parseText(settingsOutput)
 
-		SdkHttpClient httpClient = ApacheHttpClient.builder().build();
-		Region region = Region.US_EAST_1;
-		AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
-			settingsJson.accessKey,
-			settingsJson.secretKey);
-		BackupClient backupClient = BackupClient.builder().region(region).httpClient(httpClient).credentialsProvider(StaticCredentialsProvider.create(awsCreds)).build();
-		def jobs = backupClient.listBackupJobs()
-		println "Backup jobs: ${jobs.backupJobs()[0].stateAsString()}"
+			SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+			//Region region = regionData;
+			Region newRegion = Region.of(awsRegion);
+			AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
+				settingsJson.accessKey,
+				settingsJson.secretKey);
+			BackupClient backupClient = BackupClient.builder().region(newRegion).httpClient(httpClient).credentialsProvider(StaticCredentialsProvider.create(awsCreds)).build();
+			def jobs = backupClient.listBackupJobs()
+			println "Backup jobs: ${jobs.backupJobs()[0].stateAsString()}"
 
-		Long successfulJobs = 0
-		Long failedJobs = 0
-		Long runningJobs = 0
-		Long totalJobs = 0
+			Long successfulJobs = 0
+			Long failedJobs = 0
+			Long runningJobs = 0
+			Long totalJobs = 0
 
-		def dataOut = []
-		jobs.backupJobs().eachWithIndex{it,index->
-			if(index < 5){
-				def reportMap = [:]
-				reportMap['id'] = it.backupJobId()
-				reportMap['start'] = it.creationDate()
-				reportMap['end'] = it.completionDate()
-				reportMap['percentage'] = it.percentDone()
-				reportMap['state'] = it.stateAsString()
-				reportMap['vaultName'] = it.backupVaultName()
-				reportMap['size'] = it.backupSizeInBytes()
-				dataOut << reportMap
+			def dataOut = []
+			jobs.backupJobs().eachWithIndex{it,index->
+				if(index < 5){
+					def reportMap = [:]
+					reportMap['id'] = it.backupJobId()
+					reportMap['start'] = it.creationDate()
+					reportMap['end'] = it.completionDate()
+					reportMap['percentage'] = it.percentDone()
+					reportMap['state'] = it.stateAsString()
+					reportMap['vaultName'] = it.backupVaultName()
+					reportMap['size'] = it.backupSizeInBytes()
+					dataOut << reportMap
+				}
+				switch(it.stateAsString()) {            
+					case "COMPLETED": 
+						totalJobs++
+						successfulJobs++ 
+						break; 
+					case "FAILED ": 
+						totalJobs++
+						failedJobs++ 
+						break; 
+					case "RUNNING": 
+						totalJobs++
+						runningJobs++ 
+						break; 
+					case "PENDING": 
+						totalJobs++
+						runningJobs++
+						break; 
+					default: 
+						totalJobs++
+						break; 
+				}
 			}
-			switch(it.stateAsString()) {            
-				case "COMPLETED": 
-					totalJobs++
-					successfulJobs++ 
-					break; 
-				case "FAILED ": 
-					totalJobs++
-					failedJobs++ 
-					break; 
-				case "RUNNING": 
-					totalJobs++
-					runningJobs++ 
-					break; 
-				case "PENDING": 
-					totalJobs++
-					runningJobs++
-					break; 
-				default: 
-					totalJobs++
-					break; 
-			}
+			println dataOut
+			awsBackupPayload.put("totalJobs", totalJobs)
+			awsBackupPayload.put("runningJobs", runningJobs)
+			awsBackupPayload.put("failedJobs", failedJobs)
+			awsBackupPayload.put("successfulJobs", successfulJobs)
+			awsBackupPayload.put("jobs", dataOut)
+
+			def webnonce = morpheus.getWebRequest().getNonceToken()
+			awsBackupPayload.put("webnonce",webnonce)
+
+			// Set the value of the model object to the HashMap object
+			model.object = awsBackupPayload
+			getRenderer().renderTemplate("hbs/instanceTab", model)
 		}
-		println dataOut
-		awsBackupPayload.put("totalJobs", totalJobs)
-		awsBackupPayload.put("runningJobs", runningJobs)
-		awsBackupPayload.put("failedJobs", failedJobs)
-		awsBackupPayload.put("successfulJobs", successfulJobs)
-		awsBackupPayload.put("jobs", dataOut)
-
-	    def webnonce = morpheus.getWebRequest().getNonceToken()
-		awsBackupPayload.put("webnonce",webnonce)
-
-		// Set the value of the model object to the HashMap object
-		model.object = awsBackupPayload
-		getRenderer().renderTemplate("hbs/instanceTab", model)
+		catch(Exception ex) {
+          println "Error parsing the AWS plugin settings. Ensure that the plugin settings have been configured."
+		  getRenderer().renderTemplate("hbs/instanceNotFoundTab", model)
+        }
 	}
 
 

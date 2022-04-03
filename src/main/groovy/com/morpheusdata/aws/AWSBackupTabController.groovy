@@ -11,6 +11,7 @@ import com.morpheusdata.core.MorpheusContext
 import software.amazon.awssdk.services.backup.BackupClient
 import software.amazon.awssdk.services.backup.model.Lifecycle
 import software.amazon.awssdk.services.backup.model.StartBackupJobRequest
+import software.amazon.awssdk.services.backup.model.StartRestoreJobRequest
 import software.amazon.awssdk.services.backup.model.ListRecoveryPointsByResourceRequest
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
@@ -46,40 +47,13 @@ class AWSBackupTabController implements PluginController {
 		return morpheusContext
 	}
 
-	/**
-	 * Defines two Routes with the builder method
-	 * @return
-	 */
 	List<Route> getRoutes() {
 		[
-			Route.build("/awsBackup/example", "example", [Permission.build("awsIntegrationPlugin", "full")]),
-			Route.build("/awsBackup/json", "json", [Permission.build("awsIntegrationPlugin", "full")]),
 			Route.build("/awsBackup/backupVaults", "listBackupVaults", [Permission.build("awsIntegrationPlugin", "full")]),
 			Route.build("/awsBackup/createBackup", "createBackup", [Permission.build("awsIntegrationPlugin", "full")]),
-			Route.build("/awsBackup/listRecoveryPoints", "listRecoveryPoints", [Permission.build("awsIntegrationPlugin", "full")])
+			Route.build("/awsBackup/listRecoveryPoints", "listRecoveryPoints", [Permission.build("awsIntegrationPlugin", "full")]),
+			Route.build("/awsBackup/restoreBackup", "restoreBackup", [Permission.build("awsIntegrationPlugin", "full")])
 		]
-	}
-
-	/**
-	 * As defined in {@link #getRoutes}, Method will be invoked when /reverseTask/example is requested
-	 * @param model
-	 * @return a simple html response
-	 */
-	def example(ViewModel<String> model) {
-		println model
-		println "user: ${model.user}"
-		return HTMLResponse.success("foo: ${model.user.firstName} ${model.user.lastName}")
-	}
-
-	/**
-	 * As defined in {@link #getRoutes}, Method will be invoked when /reverseTask/json is requested
-	 * @param model
-	 * @return a simple json response
-	 */
-	def json(ViewModel<Map> model) {
-		println model
-		model.object.foo = "fizz"
-		return JsonResponse.of(model.object)
 	}
 
 	def listBackupVaults(ViewModel <Map> model){
@@ -107,8 +81,6 @@ class AWSBackupTabController implements PluginController {
 			settingsJson.secretKey);
 		BackupClient backupClient = BackupClient.builder().region(region).httpClient(httpClient).credentialsProvider(StaticCredentialsProvider.create(awsCreds)).build();
 		def vaults = backupClient.listBackupVaults()
-		println "Backup jobs: ${vaults.backupVaultList()}"
-
 		def dataOut = []
 		vaults.backupVaultList().each{
 			dataOut << it.backupVaultName()
@@ -145,13 +117,14 @@ class AWSBackupTabController implements PluginController {
 		def backupPayload = backupClient.listRecoveryPointsByResource(request)
 
 		def recoveryPoints = backupPayload.recoveryPoints()
-		println "Recovery points: ${recoveryPoints}"
 
-		//def dataOut = []
-		//vaults.backupVaultList().each{
-		//	dataOut << it.backupVaultName()
-		//}
-        model.object.recoveryPoints = recoveryPoints
+		def dataOut = []
+		recoveryPoints.each{
+			def pointDate = it.creationDate()
+			def output = it.recoveryPointArn() + " - " + pointDate.toString()
+			dataOut << output
+		}
+        model.object.recoveryPoints = dataOut
 		return JsonResponse.of(model.object)
 	}
 
@@ -192,6 +165,46 @@ class AWSBackupTabController implements PluginController {
 		StartBackupJobRequest request = StartBackupJobRequest.builder().backupVaultName("Default").resourceArn('arn:aws:ec2:us-east-1:684882843674:instance/i-0cf6daa6b431542a8').iamRoleArn('arn:aws:iam::684882843674:role/service-role/AWSBackupDefaultServiceRole').build();
 		def backupPayload = backupClient.startBackupJob(request)
         model.object.backupResponse = backupPayload.toString()
+		return JsonResponse.of(model.object)
+	}
+
+	def restoreBackup(ViewModel <Map> model){
+		Enumeration en=model.request.getParameterNames();
+		while(en.hasMoreElements())
+		{
+			Object objOri=en.nextElement();
+			String param=(String)objOri;
+			String value=model.request.getParameter(param);
+			println("Parameter Name is '"+param+"' and Parameter Value is '"+value+"'");
+		}
+		println "Request user: ${model.user}"
+		def settings = morpheus.getSettings(plugin)
+		def settingsOutput = ""
+		settings.subscribe(
+			{ outData -> 
+                 settingsOutput = outData
+        	},
+        	{ error ->
+                 println error.printStackTrace()
+        	}
+		)
+
+		// Parse the plugin settings payload. The settings will be available as
+		// settingsJson.$optionTypeFieldName i.e. - settingsJson.ddApiKey to retrieve the DataDog API key setting
+		JsonSlurper slurper = new JsonSlurper()
+		def settingsJson = slurper.parseText(settingsOutput)
+
+		SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+		Region region = Region.US_EAST_1;
+		AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
+			settingsJson.accessKey,
+			settingsJson.secretKey);
+		BackupClient backupClient = BackupClient.builder().region(region).httpClient(httpClient).credentialsProvider(StaticCredentialsProvider.create(awsCreds)).build();
+
+		//Lifecycle.Builder lifecyclePeriod = Lifecycle.builder().build()
+		StartRestoreJobRequest request = StartRestoreJobRequest.builder().	recoveryPointArn('arn:aws:ec2:us-east-1::image/ami-0058b5ea1c655ffee').iamRoleArn('arn:aws:iam::684882843674:role/service-role/AWSBackupDefaultServiceRole').build();
+		def restorePayload = backupClient.startRestoreJob(request)
+        model.object.restoreResponse = restorePayload.toString()
 		return JsonResponse.of(model.object)
 	}
 }

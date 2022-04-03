@@ -26,7 +26,7 @@ class IntegrationPlugin extends Plugin {
 			fieldName: 'accessKey',
 			displayOrder: 0,
 			fieldLabel: 'Access Key',
-			helpText: 'The AWS access key',
+			helpText: 'AWS access key',
 			required: true,
 			inputType: OptionType.InputType.PASSWORD
 		)
@@ -37,7 +37,7 @@ class IntegrationPlugin extends Plugin {
 			fieldName: 'secretKey',
 			displayOrder: 1,
 			fieldLabel: 'Secret Key',
-			helpText: 'The AWS Secret key',
+			helpText: 'AWS Secret key',
 			required: true,
 			inputType: OptionType.InputType.PASSWORD
 		)
