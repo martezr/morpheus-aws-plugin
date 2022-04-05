@@ -16,6 +16,10 @@ class IntegrationPlugin extends Plugin {
 	void initialize() {
 		AWSBackupTabProvider awsBackupTabProvider = new AWSBackupTabProvider(this, morpheus)
 		this.pluginProviders.put(awsBackupTabProvider.code, awsBackupTabProvider)
+		AWSVolumeReportProvider awsVolumeReportProvider = new AWSVolumeReportProvider(this, morpheus)
+		this.pluginProviders.put(awsVolumeReportProvider.code, awsVolumeReportProvider)
+		AWSBackupReportProvider awsBackupReportProvider = new AWSBackupReportProvider(this, morpheus)
+		this.pluginProviders.put(awsBackupReportProvider.code, awsBackupReportProvider)
 		this.setRenderer(new HandlebarsRenderer(this.classLoader))
 		this.controllers.add(new AWSBackupTabController(this, morpheus))
 		this.setName("AWS Integration")

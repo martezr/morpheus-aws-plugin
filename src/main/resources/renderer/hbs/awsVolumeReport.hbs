@@ -1,0 +1,20 @@
+<table>
+	<thead>
+	<th>ID</th>
+	<th>Name</th>
+	<th>Status</th>
+	<th>Type</th>
+	<th>Size</th>
+	</thead>
+	<tbody>
+		{{#each main}}
+			<tr>
+				<td>{{dataMap.id}}</td>
+				<td>{{dataMap.name}}</td>
+				<td>{{dataMap.status}}</td>
+				<td>{{dataMap.type}}</td>
+				<td>{{dataMap.size}}</td>
+			</tr>
+		{{/each}}
+	</tbody>
+</table>
